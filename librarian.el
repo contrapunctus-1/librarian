@@ -94,6 +94,7 @@ Possible return values are :internal-functions, :command,
           :internal-variables
         :variables))
     ('defcustom :custom-variables)
+    ('define-derived-mode :modes)
     (_ :misc)))
 
 (defun librarian-file (&optional file)

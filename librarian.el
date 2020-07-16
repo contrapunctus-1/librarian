@@ -115,8 +115,10 @@ Possible return values are :internal-functions, :command,
       (if (librarian-form-internal-p form)
           "Internal Variable"
         "Variable"))
+    ('defgroup  "Custom Group")
     ('defcustom "Custom Variable")
-    ('define-derived-mode "Mode")
+    ('define-derived-mode "Major Mode")
+    ('define-minor-mode   "Minor Mode")
     (_ "Misc")))
 
 (defun librarian-file (&optional file)

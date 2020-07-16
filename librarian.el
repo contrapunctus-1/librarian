@@ -35,11 +35,30 @@ return the result of (FN-N ... (FN-2 (FN-1 VAR)))"
     (setq var (funcall fn var)))
   var)
 
-(defun librarian-form-to-org (form))
+(defun librarian-org-print-form (index form)
+  "Return a string using INDEX and FORM, to be inserted in the output buffer."
+  (format "%s. %s\n" index form))
 
-(defun librarian-backend-org (forms)
-  "Convert FORMS to documentation in Org markup.
-FORMS should be a list of s-expressions.")
+(defun librarian-backend-org (table)
+  "Convert TABLE to documentation in Org markup.
+TABLE should be a hash table returned by `librarian-file'."
+  (let ((buffer (get-buffer-create "*librarian-output-org*")))
+    (switch-to-buffer-other-window buffer)
+    (with-current-buffer buffer
+      (delete-region (point-min) (point-max))
+      (cl-loop for keyword being the hash-keys of table
+        using (hash-values forms)
+        initially do (insert (format "* Reference\n"))
+        do (->> (symbol-name keyword)
+                (s-chop-prefix ":")
+                (format "** %s\n")
+                (insert))
+        (cl-loop with index = 1
+          for form in forms
+          do (insert (librarian-org-print-form index form))
+          (cl-incf index))
+        (insert "\n"))
+      (org-mode))))
 
 (defvar librarian-current-backend #'librarian-backend-org
   "Function to be used to transform code to documentation.")

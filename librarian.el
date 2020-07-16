@@ -96,39 +96,13 @@ Possible return values are :internal-functions, :command,
     ('defcustom :custom-variables)
     (_ :misc)))
 
-(defun librarian-forms->plist (forms)
-  "Convert FORMS, a list of forms, to a plist.
-The plist has the following keywords - :functions,
-:internal-functions, :constants, :variables, :internal-variables
-:commands, and :custom."
-  (let ((index  0)
-        (length (length forms))
-        kw new-kw plist value)
-    (cl-loop for form in forms do
-      (setq new-kw (librarian-form-category form))
-      ;; first element
-      if (null kw) do (setq kw new-kw)
-      and collect kw into plist
-      and collect form into value
-      ;; last element
-      else if (= (1+ index) length)
-      collect form into value
-      and collect value into plist
-      ;; continue with the same plist
-      else if (eq kw new-kw) collect form into value
-      ;; start a new keyword-value pair
-      else if value
-      collect value into plist
-      and do (setq kw new-kw value nil)
-      and collect kw into plist
-      and collect form into value
-      ;; run after each iteration
-      do (cl-incf index)
-      finally return plist)))
-
 (defun librarian-file (&optional file)
-  "Return Lisp forms from a file, filtered through `librarian-filters'."
-  (let ((buffer (if file (find-file-noselect file) (current-buffer))))
+  "Return Lisp forms from a file, filtered through `librarian-filters'.
+Return value is a hash table, with keywords (as returned by
+`librarian-form-category') as keys and lists of Lisp forms as
+values."
+  (let ((buffer (if file (find-file-noselect file) (current-buffer)))
+        (table  (make-hash-table)))
     (save-excursion
       (with-current-buffer buffer
         (goto-char (point-min))
@@ -136,11 +110,16 @@ The plist has the following keywords - :functions,
                while (setq expr (ignore-errors (read buffer)))
                when (| expr librarian-filter-list)
                collect it)
-             ;; FIXME - this will only sort them by name, but not by
-             ;; definition type! Which results in multiple plist
-             ;; keyword-value pairs with the same keyword :o
-             (sort it #'librarian-default-sort)
-             (librarian-forms->plist it))))))
+             (cl-loop for form in it
+               do (let* ((kw        (librarian-form-category form))
+                         (old-forms (gethash kw table)))
+                    (puthash kw
+                             (if old-forms
+                                 (append old-forms
+                                         (list form))
+                               (list form))
+                             table))
+               finally return table))))))
 
 (provide 'librarian)
 

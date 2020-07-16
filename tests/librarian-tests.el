@@ -5,11 +5,11 @@
 (describe
  "librarian-file"
  (it "filters out require, provide, and declare-function calls"
-     (expect (length (librarian-file "librarian.el"))
-             :to-equal 4)
-     (expect (length (plist-get (librarian-file "librarian.el") :functions))
+     (expect (hash-table-count (librarian-file "librarian.el"))
+             :to-equal 2)
+     (expect (length (gethash :functions (librarian-file "librarian.el")))
              :to-equal 9)
-     (expect (length (plist-get (librarian-file "librarian.el") :variables))
+     (expect (length (gethash :variables (librarian-file "librarian.el")))
              :to-equal 3)))
 
 ;; Local Variables:

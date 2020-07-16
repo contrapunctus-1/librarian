@@ -6,3 +6,5 @@
 2. Some way to insert into an existing Org file at a specific point
    * Maybe specify a heading name which will be replaced; Librarian could demote the generated index to be at the same level as the given heading.
 3. Add other backends
+4. Switch to trim package prefix and prefix separator(s) from output
+5. Support for dash.el's codebase (negligible benefit though?)

@@ -100,21 +100,31 @@ Possible return values are :internal-functions, :command,
 The plist has the following keywords - :functions,
 :internal-functions, :constants, :variables, :internal-variables
 :commands, and :custom."
-  ;; FIXME - fix it to return plists
-  (cl-loop with keyword with new-keyword with plist with value
-    for form in forms do
-    (princ (format "DEBUG> plist - %S\nvalue - %S\n\n" plist value))
-    (setq new-keyword (librarian-form-category form))
-    unless (eq keyword new-keyword) do
-    (setq keyword new-keyword)
-    and collect keyword into plist
-    and when value collect value into plist
-    and do (setq value nil)
-    collect form into value
-    ;; collect form into value
-    ;; and while (eq keyword new-keyword)
-    ;; collect value into plist
-    ))
+  (let ((index  0)
+        (length (length forms))
+        kw plist value)
+    (mapc
+     (lambda (form)
+       (let ((new-kw (librarian-form-category form)))
+         (cond
+          ;; first element
+          ((null kw)
+           (setq kw new-kw
+                 plist (list kw)
+                 value (list form)))
+          ;; last element
+          ((= (1+ index) length)
+           (setq plist (append plist (list value))))
+          ((eq kw new-kw)
+           (setq value (append value (list form))))
+          (t (when value
+               (setq plist (append plist (list value))
+                     kw new-kw
+                     plist (append plist (list kw))
+                     value (list form)))))
+         (cl-incf index)))
+     forms)
+    plist))
 
 (defun librarian-file (&optional file)
   "Return Lisp forms from a file, filtered through `librarian-filters'."

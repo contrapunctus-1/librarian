@@ -93,7 +93,8 @@ Possible return values are :internal-functions, :command,
       (if (librarian-form-internal-p form)
           :internal-variables
         :variables))
-    ('defcustom :custom-variables)))
+    ('defcustom :custom-variables)
+    (_ :misc)))
 
 (defun librarian-forms->plist (forms)
   "Convert FORMS, a list of forms, to a plist.
@@ -135,6 +136,9 @@ The plist has the following keywords - :functions,
                while (setq expr (ignore-errors (read buffer)))
                when (| expr librarian-filter-list)
                collect it)
+             ;; FIXME - this will only sort them by name, but not by
+             ;; definition type! Which results in multiple plist
+             ;; keyword-value pairs with the same keyword :o
              (sort it #'librarian-default-sort)
              (librarian-forms->plist it))))))
 

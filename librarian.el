@@ -49,7 +49,7 @@ FORMS should be a list of s-expressions.")
 Return non-nil if the FORM is to be documented."
   ;; Remove `require', `provide', `declare-function'...
   (pcase (car form)
-    ((or 'require 'provide 'declare-function)
+    ((or 'require 'provide 'declare-function 'autoload)
      nil)
     ;; ...and `defvar' without a value
     ((and 'defvar

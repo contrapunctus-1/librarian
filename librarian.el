@@ -36,7 +36,8 @@ return the result of (FN-N ... (FN-2 (FN-1 VAR)))"
   var)
 
 (defun librarian-org-print-form (index type form)
-  "Return a string using INDEX, TYPE, and FORM."
+  "Return a string using INDEX, TYPE, and FORM.
+FORM is a Lisp form."
   (let ((elt-2 (nth 2 form)))
     (format "%s. %s - %s %s\n"
             index
@@ -55,7 +56,7 @@ LIST should be a list returned by `librarian-file'."
       (delete-region (point-min) (point-max))
       (cl-loop
         with index = 1
-        for (type . form) in alist
+        for (type form) in alist
         initially do (insert (format "* Reference\n"))
         do (->> (librarian-org-print-form index type form)
                 (insert))

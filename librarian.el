@@ -102,29 +102,28 @@ The plist has the following keywords - :functions,
 :commands, and :custom."
   (let ((index  0)
         (length (length forms))
-        kw plist value)
-    (mapc
-     (lambda (form)
-       (let ((new-kw (librarian-form-category form)))
-         (cond
-          ;; first element
-          ((null kw)
-           (setq kw new-kw
-                 plist (list kw)
-                 value (list form)))
-          ;; last element
-          ((= (1+ index) length)
-           (setq plist (append plist (list value))))
-          ((eq kw new-kw)
-           (setq value (append value (list form))))
-          (t (when value
-               (setq plist (append plist (list value))
-                     kw new-kw
-                     plist (append plist (list kw))
-                     value (list form)))))
-         (cl-incf index)))
-     forms)
-    plist))
+        kw new-kw plist value)
+    (cl-loop for form in forms do
+      (setq new-kw (librarian-form-category form))
+      ;; first element
+      if (null kw) do (setq kw new-kw)
+      and collect kw into plist
+      and collect form into value
+      ;; last element
+      else if (= (1+ index) length)
+      collect form into value
+      and collect value into plist
+      ;; continue with the same plist
+      else if (eq kw new-kw) collect form into value
+      ;; start a new keyword-value pair
+      else if value
+      collect value into plist
+      and do (setq kw new-kw value nil)
+      and collect kw into plist
+      and collect form into value
+      ;; run after each iteration
+      do (cl-incf index)
+      finally return plist)))
 
 (defun librarian-file (&optional file)
   "Return Lisp forms from a file, filtered through `librarian-filters'."

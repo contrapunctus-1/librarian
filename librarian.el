@@ -47,8 +47,8 @@ return the result of (FN-N ... (FN-2 (FN-1 VAR)))"
               (_ "")))))
 
 (defun librarian-backend-org (alist)
-  "Convert ALIST to documentation in Org markup.
-ALIST should be as returned by `librarian-file'."
+  "Convert LIST to documentation in Org markup.
+LIST should be a list returned by `librarian-file'."
   (let ((buffer (get-buffer-create "*librarian-output-org*")))
     (switch-to-buffer-other-window buffer)
     (with-current-buffer buffer
@@ -120,9 +120,9 @@ Possible return values are :internal-functions, :command,
 
 (defun librarian-file (&optional file)
   "Return Lisp forms from a file, filtered through `librarian-filters'.
-Return value is a hash table, with keywords (as returned by
-`librarian-form-category') as keys and lists of Lisp forms as
-values."
+Return value is a list, where each element is a list with a
+string (as returned by `librarian-form-category') as the first
+element and the Lisp form as the second element."
   (let ((buffer (if file (find-file-noselect file) (current-buffer)))
         (table  (make-hash-table)))
     (save-excursion
@@ -131,7 +131,7 @@ values."
         (--> (cl-loop with expr
                while (setq expr (ignore-errors (read buffer)))
                when (| expr librarian-filter-list)
-               collect (cons (librarian-form-category it) it)))))))
+               collect (cons (librarian-form-category it) (list it))))))))
 
 (provide 'librarian)
 

@@ -35,29 +35,31 @@ return the result of (FN-N ... (FN-2 (FN-1 VAR)))"
     (setq var (funcall fn var)))
   var)
 
-(defun librarian-org-print-form (index form)
-  "Return a string using INDEX and FORM, to be inserted in the output buffer."
-  (format "%s. %s\n" index form))
+(defun librarian-org-print-form (index type form)
+  "Return a string using INDEX, TYPE, and FORM."
+  (let ((elt-2 (nth 2 form)))
+    (format "%s. %s - %s %s\n"
+            index
+            type
+            (nth 1 form)
+            (pcase (car form)
+              ('defun (if elt-2 elt-2 "()"))
+              (_ "")))))
 
-(defun librarian-backend-org (table)
-  "Convert TABLE to documentation in Org markup.
-TABLE should be a hash table returned by `librarian-file'."
+(defun librarian-backend-org (alist)
+  "Convert ALIST to documentation in Org markup.
+ALIST should be as returned by `librarian-file'."
   (let ((buffer (get-buffer-create "*librarian-output-org*")))
     (switch-to-buffer-other-window buffer)
     (with-current-buffer buffer
       (delete-region (point-min) (point-max))
-      (cl-loop for keyword being the hash-keys of table
-        using (hash-values forms)
+      (cl-loop
+        with index = 1
+        for (type . form) in alist
         initially do (insert (format "* Reference\n"))
-        do (->> (symbol-name keyword)
-                (s-chop-prefix ":")
-                (format "** %s\n")
+        do (->> (librarian-org-print-form index type form)
                 (insert))
-        (cl-loop with index = 1
-          for form in forms
-          do (insert (librarian-org-print-form index form))
-          (cl-incf index))
-        (insert "\n"))
+        (cl-incf index))
       (org-mode))))
 
 (defvar librarian-current-backend #'librarian-backend-org
@@ -100,21 +102,21 @@ Possible return values are :internal-functions, :command,
 :custom-variables."
   (pcase (car form)
     ('defun
-        (cond ((librarian-form-internal-p form) :internal-functions)
+        (cond ((librarian-form-internal-p form) "Internal Function")
               ((seq-find (lambda (subform)
                            (and (consp subform)
                                 (eq (car subform) 'interactive)))
                          form)
-               :commands)
-              (t :functions)))
-    ('defconst :constants)
+               "Command")
+              (t "Function")))
+    ('defconst "Constant")
     ('defvar
       (if (librarian-form-internal-p form)
-          :internal-variables
-        :variables))
-    ('defcustom :custom-variables)
-    ('define-derived-mode :modes)
-    (_ :misc)))
+          "Internal Variable"
+        "Variable"))
+    ('defcustom "Custom Variable")
+    ('define-derived-mode "Mode")
+    (_ "Misc")))
 
 (defun librarian-file (&optional file)
   "Return Lisp forms from a file, filtered through `librarian-filters'.
@@ -129,17 +131,7 @@ values."
         (--> (cl-loop with expr
                while (setq expr (ignore-errors (read buffer)))
                when (| expr librarian-filter-list)
-               collect it)
-             (cl-loop for form in it
-               do (let* ((kw        (librarian-form-category form))
-                         (old-forms (gethash kw table)))
-                    (puthash kw
-                             (if old-forms
-                                 (append old-forms
-                                         (list form))
-                               (list form))
-                             table))
-               finally return table))))))
+               collect (cons (librarian-form-category it) it)))))))
 
 (provide 'librarian)
 

@@ -1,0 +1,4 @@
+* Certain
+1. Change ~librarian-form-category~ to ignore anything which is currently classified as ~:misc~, once we handle all definition forms.
+* Maybe
+1. Use Cask to determine project files to look in (see commit 7cbf510)

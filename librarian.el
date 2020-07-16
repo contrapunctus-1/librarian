@@ -86,7 +86,7 @@ Possible return values are :internal-functions, :command,
                            (and (consp subform)
                                 (eq (car subform) 'interactive)))
                          form)
-               :command)
+               :commands)
               (t :functions)))
     ('defconst :constants)
     ('defvar

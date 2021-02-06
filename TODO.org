@@ -1,6 +1,7 @@
 * Certain
 1. Change ~librarian-form-category~ to ignore anything which is currently classified as ~:misc~, once we handle all definition forms.
 2. Single-file/multi-file output. With a single file, you just have a top-level heading called "Reference". With multiple files, you have a top-level "Reference" heading with sub-headings for each file. (maybe reflecting the directory structure too)
+3. Use Elsa as an optional dependency - read Elsa type annotations and add them.
 * Maybe
 1. If Cask file found in directory, use Cask to determine project files to look in (see commit 7cbf510)
 2. Some way to insert into an existing Org file at a specific point
@@ -8,3 +9,4 @@
 3. Add other backends
 4. Switch to trim package prefix and prefix separator(s) from output
 5. Support for dash.el's codebase (negligible benefit though?)
+6. Add =declare= information like pure, side-effect-free.
